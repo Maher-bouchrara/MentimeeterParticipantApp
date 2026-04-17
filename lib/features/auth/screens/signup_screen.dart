@@ -2,73 +2,64 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../core/theme.dart';
-import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, this.onLogin});
-  final VoidCallback? onLogin;
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
+  final _displayNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
 
   @override
   void dispose() {
+    _displayNameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
     super.dispose();
   }
 
-  void _submitLogin(BuildContext ctx) {
-    ctx.read<AuthBloc>().add(LoginRequested(
-          email: _emailCtrl.text.trim(),
-          password: _passwordCtrl.text,
+  void _submit() {
+    final displayName = _displayNameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
+    final confirmPassword = _confirmPasswordCtrl.text;
+
+    if (displayName.isEmpty) {
+      _showError('Veuillez entrer votre nom.');
+      return;
+    }
+    if (email.isEmpty) {
+      _showError('Veuillez entrer votre email.');
+      return;
+    }
+    if (password.length < 6) {
+      _showError('Le mot de passe doit avoir au moins 6 caracteres.');
+      return;
+    }
+    if (password != confirmPassword) {
+      _showError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    context.read<AuthBloc>().add(SignupRequested(
+          displayName: displayName,
+          email: email,
+          password: password,
         ));
   }
 
-  void _showGuestDialog(BuildContext ctx) {
-    final nameCtrl = TextEditingController();
-    showDialog(
-      context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text(
-          'Rejoindre en tant qu\'invité',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 17),
-        ),
-        content: TextField(
-          controller: nameCtrl,
-          autofocus: true,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-          decoration: const InputDecoration(hintText: 'Votre prénom ou pseudo'),
-          onSubmitted: (_) {
-            Navigator.of(dialogCtx).pop();
-            ctx.read<AuthBloc>().add(GuestJoinRequested(displayName: nameCtrl.text));
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Annuler',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(dialogCtx).pop();
-              ctx.read<AuthBloc>().add(
-                    GuestJoinRequested(displayName: nameCtrl.text),
-                  );
-            },
-            child: const Text('Rejoindre'),
-          ),
-        ],
-      ),
-    );
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: AppColors.danger,
+    ));
   }
 
   @override
@@ -77,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.bg,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (ctx, state) {
-          if (state is AuthAuthenticated) widget.onLogin?.call();
+          if (state is AuthAuthenticated) Navigator.of(ctx).pop();
           if (state is AuthError) {
             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
               content: Text(state.message),
@@ -86,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         builder: (ctx, state) {
-          final loading = state is AuthLoading;
+          final isLoading = state is AuthLoading;
           return Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -117,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Quiz Player',
+                      'Créer un compte',
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 22,
@@ -126,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Connectez-vous pour participer',
+                      'Rejoindre en tant que participant',
                       style:
                           TextStyle(color: AppColors.textSecondary, fontSize: 14),
                     ),
@@ -143,6 +134,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Text('Nom affiché',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary, fontSize: 13)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _displayNameCtrl,
+                            enabled: !isLoading,
+                            style: const TextStyle(
+                                color: AppColors.textPrimary, fontSize: 14),
+                            decoration:
+                                const InputDecoration(hintText: 'John Doe'),
+                          ),
+                          const SizedBox(height: 16),
+
                           const Text('Adresse email',
                               style: TextStyle(
                                   color: AppColors.textSecondary, fontSize: 13)),
@@ -150,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextField(
                             controller: _emailCtrl,
                             keyboardType: TextInputType.emailAddress,
-                            enabled: !loading,
+                            enabled: !isLoading,
                             style: const TextStyle(
                                 color: AppColors.textPrimary, fontSize: 14),
                             decoration: const InputDecoration(
@@ -165,83 +170,56 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextField(
                             controller: _passwordCtrl,
                             obscureText: true,
-                            enabled: !loading,
+                            enabled: !isLoading,
                             style: const TextStyle(
                                 color: AppColors.textPrimary, fontSize: 14),
                             decoration:
                                 const InputDecoration(hintText: '••••••••'),
-                            onSubmitted: (_) => _submitLogin(ctx),
+                          ),
+                          const SizedBox(height: 16),
+
+                          const Text('Confirmer le mot de passe',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary, fontSize: 13)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _confirmPasswordCtrl,
+                            obscureText: true,
+                            enabled: !isLoading,
+                            style: const TextStyle(
+                                color: AppColors.textPrimary, fontSize: 14),
+                            decoration:
+                                const InputDecoration(hintText: '••••••••'),
+                            onSubmitted: (_) => _submit(),
                           ),
                           const SizedBox(height: 20),
 
-                          // Log in
                           SizedBox(
                             width: double.infinity,
                             height: 48,
                             child: ElevatedButton(
-                              onPressed:
-                                  loading ? null : () => _submitLogin(ctx),
-                              child: loading
+                              onPressed: isLoading ? null : _submit,
+                              child: isLoading
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           color: Colors.white))
-                                  : const Text('Se connecter'),
+                                  : const Text('Créer mon compte'),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
 
-                          // Sign up
-                          SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: OutlinedButton(
-                              onPressed: loading
-                                  ? null
-                                  : () => Navigator.of(ctx).push(
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              BlocProvider.value(
-                                            value: ctx.read<AuthBloc>(),
-                                            child: const SignupScreen(),
-                                          ),
-                                        ),
-                                      ),
-                              child: const Text('Créer un compte'),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Divider
-                          const Row(children: [
-                            Expanded(
-                                child: Divider(color: AppColors.border)),
-                            Padding(
-                              padding:
-                                  EdgeInsets.symmetric(horizontal: 12),
-                              child: Text('ou',
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12)),
-                            ),
-                            Expanded(
-                                child: Divider(color: AppColors.border)),
-                          ]),
-                          const SizedBox(height: 16),
-
-                          // Guest
-                          SizedBox(
-                            width: double.infinity,
-                            height: 48,
+                          Center(
                             child: TextButton(
-                              onPressed:
-                                  loading ? null : () => _showGuestDialog(ctx),
+                              onPressed: isLoading
+                                  ? null
+                                  : () => Navigator.of(context).pop(),
                               child: const Text(
-                                'Rejoindre sans compte (invité)',
+                                'Déjà un compte ? Se connecter',
                                 style: TextStyle(
-                                    color: AppColors.accent, fontSize: 14),
+                                    color: AppColors.accent, fontSize: 13),
                               ),
                             ),
                           ),

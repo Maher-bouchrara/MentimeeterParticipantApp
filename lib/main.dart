@@ -1,7 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/graphql_service.dart';
 import 'core/theme.dart';
+import 'firebase_options.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/leaderboard/screens/leaderboard_screen.dart';
@@ -11,10 +14,10 @@ import 'features/session/bloc/session_bloc.dart';
 import 'features/session/screens/join_session_screen.dart';
 import 'features/session/screens/waiting_room_screen.dart';
 
-// Étapes suivantes :
-// import 'features/leaderboard/bloc/leaderboard_bloc.dart';
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  GraphQLService.instance.init();
   runApp(const QuizParticipantApp());
 }
 
@@ -74,7 +77,7 @@ class _AppRouter extends StatelessWidget {
 
                     if (questionState is QuestionCompleted) {
                       return LeaderboardScreen(
-                        playerName: state.name,
+                        playerName: state.displayName,
                         playerScore: questionState.finalScore,
                         onPlayAgain: () {
                           ctx.read<SessionBloc>().add(const SessionResetRequested());
