@@ -15,10 +15,22 @@ class AuthLoading extends AuthState {
 }
 
 class AuthAuthenticated extends AuthState {
-  const AuthAuthenticated({required this.name});
-  final String name;
+  const AuthAuthenticated({
+    required this.displayName,
+    this.email,
+    this.userId,
+    this.isGuest = false,
+  });
+  final String displayName;
+  final String? email;
+  final String? userId;
+  final bool isGuest;
+
+  // Kept for backward-compat with main.dart references to state.name
+  String get name => displayName;
+
   @override
-  List<Object?> get props => [name];
+  List<Object?> get props => [displayName, email, userId, isGuest];
 }
 
 class AuthError extends AuthState {
