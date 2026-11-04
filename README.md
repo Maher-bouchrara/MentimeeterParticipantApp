@@ -1,105 +1,36 @@
-# Mentimeeter Participant App
+# Mentimeeter Participant App (earlier snapshot)
 
-Application Flutter (cote participant) inspiree d'un flow type Mentimeter:
+Early Flutter participant app of a live quiz system (Mentimeter/Kahoot style), kept for reference.
 
-1. Login
-2. Join session (code)
-3. Waiting room
-4. Questions (QCM avec timer)
-5. Leaderboard final
+![Flutter](https://img.shields.io/badge/Flutter-Dart%203-02569B?style=flat-square&logo=flutter&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?style=flat-square&logo=firebase&logoColor=black)
+![Status](https://img.shields.io/badge/status-Archived-lightgrey?style=flat-square)
+![Team](https://img.shields.io/badge/Team%20project-2%20authors-blue?style=flat-square)
 
-## Apercu du projet
+> **Superseded.** Development continued in the monorepo **[live-quiz-platform](https://github.com/Maher-bouchrara/live-quiz-platform)** (`participant-app/` folder), which replaces the mock quiz with live sessions over Firebase Realtime Database, server-side scoring, guest mode and session history. Use that repository.
 
-Cette application est une base pedagogique qui illustre:
+## What is in this snapshot
 
-- Une architecture par features
-- La gestion d'etat avec `flutter_bloc`
-- Un routing simple par etats (Auth -> Session -> Question -> Leaderboard)
-- Des donnees mockees pour simuler un quiz en temps reel
+State as of April 2026:
 
-## Stack technique
+- Sign up / sign in with Firebase Authentication; the user is created in the GraphQL backend ([MentimeeterBackend](https://github.com/Maher-bouchrara/MentimeeterBackend)).
+- Join-by-code screen (checks a fixed demo code) and waiting room.
+- Timed multiple-choice questions and a final leaderboard, driven by local mock data.
+- flutter_bloc state management, feature folders (`auth`, `session`, `question`, `leaderboard`).
 
-- Flutter
-- Dart
-- flutter_bloc
-- equatable
+## Run it
 
-## Structure des dossiers
-
-```
-lib/
-	core/
-		mock_data.dart
-		theme.dart
-	features/
-		auth/
-			bloc/
-			screens/
-		session/
-			bloc/
-			screens/
-		question/
-			bloc/
-			screens/
-		leaderboard/
-			screens/
-	main.dart
-```
-
-## Flow fonctionnel
-
-- `AuthBloc`: gere la connexion utilisateur.
-- `SessionBloc`: valide le code de session et ouvre la waiting room.
-- `QuestionBloc`: gere les questions, le timer, les reponses et le score.
-- `LeaderboardScreen`: affiche le classement final.
-
-Le code de session mock attendu est `AB12CD`.
-
-## Lancer le projet
-
-### Prerequis
-
-- Flutter SDK installe
-- Un emulator Android/iOS ou un appareil physique
-
-### Installation
+Prerequisites: Flutter SDK (Dart 3); the backend on port 3001 for sign-up.
 
 ```bash
 flutter pub get
-```
-
-### Execution
-
-```bash
 flutter run
 ```
 
-## Qualite de code
+The GraphQL URL is set in `lib/core/graphql_service.dart` (`localhost:3001`; use `10.0.2.2` on the Android emulator). The committed Firebase client config is not secret, but its API key should be restricted in the Google Cloud console.
 
-Pour analyser le projet:
+## Author
 
-```bash
-flutter analyze lib
-```
+**Maher Bouchrara** — [Portfolio](https://maher-bouchrara.vercel.app) · [GitHub](https://github.com/Maher-bouchrara) · [LinkedIn](https://www.linkedin.com/in/maher-bouchrara-35b91122b/)
 
-## Donnees mock
-
-Les donnees de quiz et leaderboard sont definies dans:
-
-- `lib/core/mock_data.dart`
-
-Tu peux modifier ce fichier pour changer:
-
-- Le titre du quiz
-- Le nombre et contenu des questions
-- Les choix de reponses
-- Le leaderboard final
-
-## Notes
-
-- Le projet est configure pour plusieurs plateformes (Android, iOS, Web, Desktop).
-- Les etapes reseau/backend ne sont pas encore connectees (mode mock).
-
-## Auteur
-
-Maher Bouchrara
+Co-author: **Maher Ayachi** ([MaherAy](https://github.com/MaherAy)) — sign-up screen and Firebase Authentication integration (PR #1).
